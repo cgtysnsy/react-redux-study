@@ -1,70 +1,257 @@
-# Getting Started with Create React App
+# React- Redux ToDo List Study
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### What did I use
 
-## Available Scripts
+- Provider
+- Manage stores in Reduxjs Toolikit
+- useSelector & useDispatch for global states
+- Modal for edit to do
+- For modals different file was created and manage from this file
+- Stores file was created for each need
+- createSlice & configureStore used from reactjs toolikit for create and manage stores.
+- Nano id was used for create unique id for each list item.
+- For local states, useState was used.
+- For each user could be able to edit, delete, add own items.
 
-In the project directory, you can run:
+### Dependincies in use
 
-### `npm start`
+- Add Nanoid for giving unique id for each list item in the todo list.
+- react-redux
+- Reduxjs toolikit
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Notes of mapping for create redux store and send/ calls states and actions
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+//1- create store-->todo.js files
+//2- import createSlice method for could create store
 
-### `npm test`
+import { createSlice } from "@redux.js/toolkit";
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+//3-Give a initial state, this is same with the useState argument
 
-### `npm run build`
+const initialState = {
+  todos: []
+};
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+//4- createSlice was created as a todos variable
+const todos = createSlice({
+  name: "todos", //this is used for prefix to action types, be careful it should uniqe
+  initialState,
+  //reducer is work like "setTodos"
+  reducers: {
+    addTodo: (state, action) => {
+      state.todos = [
+        action.payload, // this is actually what adding , for redux jargon this is payload
+        ...state.todos //all todos
+      ];
+    }
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    //for deleting one item from the state. If not equal show them
+    deleteTodo: (state,action) => {
+      state.todos = state.todos.filter(todo=> todo.id !== action.payload)
+    }
+  }
+});
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+//5- somethings is goint to exract now. todos.actions' todos is that uniqe name
 
-### `npm run eject`
+export const { addTodo, deleteTodo } = todos.actions;
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+// and also as a default
+export default todos.reducer;
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+// NOW WE HAVE ONE STORE. For managins that store, another index.js is going to be created.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+//6- Create index.js under store folder
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+//7- For using that store { configureStore } should be imported
 
-## Learn More
+import { configureStore } from "@redux.js/toolkit";
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+//8- First thing is in that index.js is define a store variable and it get values from todo.js
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+const store = configureStore({
+  reducer: {
+    todo //in here, second todo is same as from slice file.
+  }
+});
 
-### Code Splitting
+//9- We define todo inside the store but didnt import, also we need to import it inside to index.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+import todo from "./todo";
 
-### Analyzing the Bundle Size
+//10- Also we need to export index.js. We will use it inside the provider
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+export default store;
 
-### Making a Progressive Web App
+//11- Go main index.js file which wrapp the App.js. In there first import {Provider} from react-redux
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+import { Provider } from "react-redux";
 
-### Advanced Configuration
+//12- And then wrapp that App component with Provider, and define store inside that provider for can send it every component
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+{
+  /* <Provider store={store}>
+  <App/>
+  <Provider/> */
+}
 
-### Deployment
+//13- We need also import store index.js here
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+import store from "./stores";
 
-### `npm run build` fails to minify
+// 14- now go to AddTodo.js component. In this component we will add these todos, so we need to import addTodo from store
+//addTodo was exported with this name, thats why we are importing it directly, not like props as a argument.
+import { addTodo } from "src/stores/todo";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+//15- And now we are at one of main point, dispatch. We want add something in a state, and we will use some method
+//If we want to trigger this addTodo method which is coming from store, we will useDispacth for this.
+//To sum up, when we are sending "state" we will send function and one method for trigger it.
+
+import { useDispatch } from "react-redux";
+
+//16- After importing it, first just create it with its name.
+//After function line
+
+const dispatch = useDispatch();
+
+//17- We will add with submitHandle event listener. Put that dispatch inside that listener. And addTodo is going inside this dispatch method
+//for adding todo object
+
+const submitHandle = e => {
+  e.preventDeafult()
+
+  dispatch(addTodo({
+    title: todo,
+    done: false,
+    id: nanoid(),
+    user: user.id
+  }))
+}
+
+//Now inside that addTodo object is action payload now.
+
+//------------------------------------
+
+//18- Go to TodoList.js component. If you want to glabal state and use it
+// Use useSelector hook for it
+
+import {useSelector} from "react-redux"
+
+//usage of useSelector for taking global state with callback
+//Todo is inside the state/store, todos is in the todo as an initialstate
+//so we destruct that todos from todo
+const {todos} = useSelector(state=> state.todo)
+
+//19- for every item, TodoItem.js is using. Inside it, we will use useSelector again.
+//And also we define deleteHandle and editHandle events in that component. Delete and edit functions calling here with "import"
+
+import {useSelector} from "react-redux"
+import {deleteTodo} from "../stores/todo"
+
+const dispatch = useDispatch()
+
+//inside the handlers;
+
+const deleteHandle=()=> {
+  dispatch(deleteTodo(todo.id))
+}
+
+
+//20- now, create store for the login auth.js / Adding new state situation
+
+//import createSlice method for could create store
+//Give a initial state, this is same with the useState argument
+
+import { createSlice } from "@redux.js/toolkit";
+
+const initialState = {
+  user: false
+};
+
+
+const auth = createSlice({
+  name: "auth",
+  initialState,
+
+  reducers: {
+    login: (state, action) => {
+      state.user = action.payload  //set user boolean with what will come
+
+    }
+    logout : state => {
+      state.user = false;
+    }
+
+  }
+});
+
+export const { login, logout } = auth.actions;
+
+export default auth.reducer;
+
+//21- Inside the store index.js
+
+import auth from "./auth"
+
+/* const store = configureStore({
+  reducer: {
+    todo
+  }
+}); */
+//Inside that configureStore, add auth
+
+const store = configureStore({
+  reducer: {
+    todo,
+    auth
+  }
+});
+
+//22- Fırst, inside the Header component, we want the get our user
+
+import {useSelector} from "react-redux"
+
+const {user} = useSelector(state => state.auth.user)
+
+//23- After getting user, for could change, changeUser and for trigger it useDispatch should import that component
+
+import {useSelector, useDispatch} from "react-redux"
+import {login, logout} from "../stores/auth"
+
+const dispatch = useDispatch()
+
+//Insede the login-logout handler
+
+const loginHandler = user => {
+  dispatch(login(user))
+}
+const logoutHandler = () => {
+  dispatch(logout())
+}
+
+//23- AddTodo() - TodoItem also need users
+//useSelector
+//const {user} =useSelector(state=> state.auth)
+
+//24- Create store for the modal now
+//modal.js
+//createSlice
+//initialState name:false,data:false, open: false
+//const modal= createSlice
+//reducers:{
+ // openModal: (state, action) => {
+  //  state.name = action.payload.name
+   // state.data=action.payload?.data || false
+    //state.open=true},
+  //closeModal : state=> {
+  //  state.name: false;
+   // state.data: false,
+   // state.open = false
+  //}}
+
+// export const {openModal, closeModal} = modal.actions -- export default modal.reducers
+
+//25- add this modal to store index.js
+
+```

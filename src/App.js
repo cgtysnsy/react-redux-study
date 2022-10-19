@@ -1,24 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import Header from "./components/Header";
+import AddTodo from "./components/AddTodo";
+import TodoList from "./components/TodoList";
+import Modal from "./components/Modal";
+import { useSelector } from "react-redux";
+
+import "./App.css";
 
 function App() {
+  const { open: isModalOpen } = useSelector((state) => state.modal);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <main>
+      {isModalOpen && <Modal />}
+      <Header />
+      <AddTodo />
+      <TodoList />
+    </main>
   );
 }
 
